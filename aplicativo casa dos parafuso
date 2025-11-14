@@ -1,0 +1,90 @@
+// PWA version structure for your Inventory Web App
+// This file includes the service worker registration, manifest, and updated app shell.
+// You should place these files in a Vite or CRA project.
+
+/* ==========================
+   manifest.json
+========================== */
+{
+  "short_name": "Casa dos Parafusos",
+  "name": "Casa dos Parafusos",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#064e3b",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#064e3b"
+}
+
+/* ==========================
+   service-worker.js
+========================== */
+const CACHE_NAME = "inventory-cache-v1";
+const URLS_TO_CACHE = ["/", "/index.html", "/manifest.json"];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(URLS_TO_CACHE);
+    })
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((resp) => {
+      return resp || fetch(event.request);
+    })
+  );
+});
+
+/* ==========================
+   serviceWorkerRegistration.js
+========================== */
+export function register() {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/service-worker.js")
+        .catch((err) => console.error("SW error: ", err));
+    });
+  }
+}
+
+/* ==========================
+   Updated main.jsx (Vite)
+========================== */
+import React from "react";
+import ReactDOM from "react-dom/client";
+import InventoryApp from "./InventoryApp";
+import { register as registerSW } from "./serviceWorkerRegistration";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <InventoryApp />
+  </React.StrictMode>
+);
+
+registerSW();
+
+/* ==========================
+ Instructions:
+ 1. Place manifest.json in public/
+ 2. Place service-worker.js in public/
+ 3. Add icons in public/icons/
+ 4. Link manifest in index.html:
+    <link rel="manifest" href="/manifest.json" />
+ 5. Build and deploy — now installable on mobile!
+========================== */
